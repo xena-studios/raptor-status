@@ -2,7 +2,7 @@ name: Deploy checker
 
 # Tests, builds, and deploys the Azure Function on pushes to main that touch
 # it. Signs in to Azure with GitHub's OIDC token: no Azure secret is stored
-# here (README.md, setup step 7).
+# here (docs/SETUP.md, step 7).
 on:
   push:
     branches: [main]
