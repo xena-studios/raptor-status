@@ -58,7 +58,11 @@ test("a new UTC day hands back yesterday's tally and starts over", () => {
 
 test("merge writes tallies and drops days past 90", () => {
   const h = merge(
-    { version: 1, updated: "", days: { api: { "2026-08-01": { n: 1, down: 0, slow: 0 }, "2026-11-10": { n: 5, down: 1, slow: 0 } } } },
+    {
+      version: 1,
+      updated: "",
+      days: { api: { "2026-08-01": { n: 1, down: 0, slow: 0 }, "2026-11-10": { n: 5, down: 1, slow: 0 } } },
+    },
     [{ day: "2026-11-16", counts: { api: { n: 2, down: 0, slow: 0 }, app: { n: 2, down: 2, slow: 0 } } }],
     at("2026-11-16T12:00:00Z"),
   );

@@ -9,11 +9,11 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "node scripts/build.mjs",
+    "build": "node scripts/build.ts",
     "typecheck": "tsc --noEmit",
     "test": "node --test \"test/**/*.test.ts\"",
-    "once": "npm run build && node dist/local.js",
-    "package": "node scripts/package.mjs"
+    "once": "pnpm build && node dist/local.js",
+    "package": "node scripts/package.ts"
   },
   "dependencies": {
     "@azure/functions": "4.17.1",
@@ -21,8 +21,13 @@
     "@azure/storage-blob": "12.34.0"
   },
   "devDependencies": {
-    "@types/node": "24.19.2",
+    "@raptor-status/shared": "workspace:*",
+    "@types/node": "22.20.5",
     "esbuild": "0.28.2",
     "typescript": "7.0.2"
-  }
+  },
+  "files": [
+    "dist",
+    "host.json"
+  ]
 }

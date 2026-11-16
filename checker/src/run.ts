@@ -1,6 +1,6 @@
 // One run: check everything at once, write status.json, and fold the day's
 // tallies into history.json at the top of each hour and when a day ends.
-import type { HistoryFile, StatusFile } from "../../shared/status.ts";
+import type { HistoryFile, StatusFile } from "@raptor-status/shared/status";
 import { components, settings } from "./config.ts";
 import { notifyDiscord } from "./notify.ts";
 import { probe, type Result } from "./probe.ts";
@@ -28,7 +28,9 @@ export async function runOnce(store: Store, log: Log, now = new Date()) {
     await store.write("history.json", JSON.stringify(merge(history, tallies, now)), 300);
   }
 
-  const summary = entries.map(([id, r]) => `${id}=${r.ok ? (r.slow ? "slow" : "ok") : `FAIL(${r.detail})`}${r.latencyMs ?? "-"}ms`);
+  const summary = entries.map(
+    ([id, r]) => `${id}=${r.ok ? (r.slow ? "slow" : "ok") : `FAIL(${r.detail})`}${r.latencyMs ?? "-"}ms`,
+  );
   log.info(summary.join(" "));
   for (const c of next.changes) log.warn(`${c.id}: ${c.from} -> ${c.to}${c.detail ? ` (${c.detail})` : ""}`);
 

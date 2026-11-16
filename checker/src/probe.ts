@@ -1,6 +1,6 @@
 // One check of one component. Every check has a deadline, and none throws:
 // a failure is a result with a reason the page can show.
-import { Resolver, promises as dns } from "node:dns";
+import { promises as dns, Resolver } from "node:dns";
 import type { Probe } from "./config.ts";
 
 export interface Result {

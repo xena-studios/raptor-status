@@ -5,7 +5,9 @@
 // Ethnocentric is outlined in the file; never set it as live text.
 import raw from "../assets/xena.svg?raw";
 
-const [, w, h] = raw.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/)!;
+const match = raw.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/);
+if (!match) throw new Error("xena.svg has no viewBox");
+const [, w, h] = match;
 const pad = 50;
 const svg = raw
   .replace(/ width="[^"]*" height="[^"]*"/, "")

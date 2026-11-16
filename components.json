@@ -11,7 +11,13 @@
       "id": "app",
       "name": "Web app",
       "description": "app.raptorpanel.net",
-      "probe": { "kind": "http", "url": "https://app.raptorpanel.net/", "expect": 200, "contains": "<div id=\"root\"", "slowMs": 2000 }
+      "probe": {
+        "kind": "http",
+        "url": "https://app.raptorpanel.net/",
+        "expect": 200,
+        "contains": "<div id=\"root\"",
+        "slowMs": 2000
+      }
     },
     {
       "id": "dns",
@@ -23,7 +29,13 @@
       "id": "installer",
       "name": "Installer",
       "description": "get.raptorpanel.net, for linking new nodes",
-      "probe": { "kind": "http", "url": "https://get.raptorpanel.net/", "expect": 200, "contains": "#!/bin/bash", "slowMs": 3000 }
+      "probe": {
+        "kind": "http",
+        "url": "https://get.raptorpanel.net/",
+        "expect": 200,
+        "contains": "#!/bin/bash",
+        "slowMs": 3000
+      }
     },
     {
       "id": "docs",

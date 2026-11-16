@@ -1,0 +1,13 @@
+packages:
+  - site
+  - checker
+  - shared
+
+# The checker's deploy (pnpm deploy) copies workspace packages in rather than
+# linking them; scripts/package.ts lays node_modules out flat, because Azure's
+# zip deploy doesn't keep symlinks.
+injectWorkspacePackages: true
+
+# esbuild's install script fetches its native binary; nothing else may run one.
+allowBuilds:
+  esbuild: true

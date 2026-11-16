@@ -1,5 +1,10 @@
 {
-  "$comment": "Marks shared/ as ES modules for the checker; the site and checker each have their own package.json.",
+  "name": "@raptor-status/shared",
   "private": true,
-  "type": "module"
+  "version": "0.0.0",
+  "description": "The file formats and rules the page and the checker share. TypeScript source: the site's Vite and the checker's esbuild compile it.",
+  "type": "module",
+  "exports": {
+    "./status": "./status.ts"
+  }
 }

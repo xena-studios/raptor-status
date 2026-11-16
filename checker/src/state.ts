@@ -1,16 +1,16 @@
 // The rules for turning a minute's checks into the next status.json, kept
 // pure so they're tested without the network or Azure.
 import {
-  DAYS,
-  FAILS_TO_DOWN,
-  SLOWS_TO_DEGRADED,
-  utcDay,
   type ComponentState,
+  DAYS,
   type DayCount,
+  FAILS_TO_DOWN,
   type HistoryFile,
   type Level,
+  SLOWS_TO_DEGRADED,
   type StatusFile,
-} from "../../shared/status.ts";
+  utcDay,
+} from "@raptor-status/shared/status";
 import type { Result } from "./probe.ts";
 
 export interface Change {
@@ -57,11 +57,17 @@ export function apply(prev: StatusFile | null, results: Record<string, Result>, 
 
     const since = status === was && before ? before.since : iso;
     if (status !== was && was !== "unknown") {
-      changes.push({ id, from: was, to: status, lastedMs: before ? now.getTime() - Date.parse(before.since) : 0, detail: r.detail });
+      changes.push({
+        id,
+        from: was,
+        to: status,
+        lastedMs: before ? now.getTime() - Date.parse(before.since) : 0,
+        detail: r.detail,
+      });
     }
     components[id] = { status, since, latencyMs: r.latencyMs, fails, slows, ...(r.detail ? { detail: r.detail } : {}) };
 
-    const c = sameDay ? { ...(prev!.today.counts[id] ?? { n: 0, down: 0, slow: 0 }) } : { n: 0, down: 0, slow: 0 };
+    const c = { ...((sameDay && prev?.today.counts[id]) || { n: 0, down: 0, slow: 0 }) };
     c.n += 1;
     if (status === "down") c.down += 1;
     else if (status === "degraded") c.slow += 1;
@@ -76,10 +82,16 @@ export function apply(prev: StatusFile | null, results: Record<string, Result>, 
 }
 
 /** Writes tallies into history and drops days older than DAYS. */
-export function merge(history: HistoryFile | null, tallies: { day: string; counts: Record<string, DayCount> }[], now: Date): HistoryFile {
+export function merge(
+  history: HistoryFile | null,
+  tallies: { day: string; counts: Record<string, DayCount> }[],
+  now: Date,
+): HistoryFile {
   const days: HistoryFile["days"] = structuredClone(history?.days ?? {});
   for (const t of tallies) {
-    for (const [id, c] of Object.entries(t.counts)) (days[id] ??= {})[t.day] = c;
+    for (const [id, c] of Object.entries(t.counts)) {
+      days[id] = { ...days[id], [t.day]: c };
+    }
   }
   const oldest = utcDay(new Date(now.getTime() - DAYS * 86_400_000));
   for (const byDay of Object.values(days)) {

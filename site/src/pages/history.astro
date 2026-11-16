@@ -1,8 +1,8 @@
 ---
 import Base from "../components/Base.astro";
 import Time from "../components/Time.astro";
-import { allIncidents, closedAt, impactLabel } from "../lib/incidents";
 import { duration } from "../lib/format";
+import { allIncidents, closedAt, impactLabel } from "../lib/incidents";
 
 const incidents = await allIncidents();
 const months = new Map<string, typeof incidents>();

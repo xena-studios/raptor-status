@@ -25,7 +25,15 @@ const incidents = defineCollection({
       .array(
         z.object({
           at: z.coerce.date(),
-          status: z.enum(["investigating", "identified", "monitoring", "resolved", "scheduled", "in-progress", "completed"]),
+          status: z.enum([
+            "investigating",
+            "identified",
+            "monitoring",
+            "resolved",
+            "scheduled",
+            "in-progress",
+            "completed",
+          ]),
           text: z.string(),
         }),
       )

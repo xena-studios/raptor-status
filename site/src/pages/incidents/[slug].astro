@@ -3,8 +3,8 @@ import { render } from "astro:content";
 import config from "../../../../components.json";
 import Base from "../../components/Base.astro";
 import Time from "../../components/Time.astro";
-import { allIncidents, closedAt, impactLabel, isClosed, updateLabel, type Incident } from "../../lib/incidents";
 import { duration } from "../../lib/format";
+import { allIncidents, closedAt, type Incident, impactLabel, isClosed, updateLabel } from "../../lib/incidents";
 
 export async function getStaticPaths() {
   return (await allIncidents()).map((incident) => ({ params: { slug: incident.id }, props: { incident } }));

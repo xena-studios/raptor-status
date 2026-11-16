@@ -1,7 +1,7 @@
 // Runs the checks from this machine and writes the files to a folder, for
 // trying the page locally:
-//   npm run once -- ../site/public/data          one run
-//   npm run once -- ../site/public/data --loop   every minute
+//   pnpm --filter raptor-status-checker once ../site/public/data          one run
+//   pnpm --filter raptor-status-checker once ../site/public/data --loop   every minute
 import { runOnce } from "./run.ts";
 import { FileStore } from "./store.ts";
 

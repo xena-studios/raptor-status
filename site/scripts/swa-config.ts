@@ -10,15 +10,17 @@ const base = process.env.PUBLIC_STATUS_BASE ?? "/data";
 const dataOrigin = base.startsWith("http") ? new URL(base).origin : "'self'";
 
 // Inline scripts (not JSON data blocks) on any page.
-const hashes = new Set();
-const walk = (dir) => {
+const hashes = new Set<string>();
+const walk = (dir: string): void => {
   for (const e of readdirSync(dir, { withFileTypes: true })) {
     const p = join(dir, e.name);
     if (e.isDirectory()) walk(p);
     else if (e.name.endsWith(".html")) {
       const html = readFileSync(p, "utf8");
-      for (const m of html.matchAll(/<script(?![^>]*\bsrc=)(?![^>]*type="application\/json")[^>]*>([\s\S]*?)<\/script>/g)) {
-        if (m[1].trim()) hashes.add(`'sha256-${createHash("sha256").update(m[1]).digest("base64")}'`);
+      for (const m of html.matchAll(
+        /<script(?![^>]*\bsrc=)(?![^>]*type="application\/json")[^>]*>([\s\S]*?)<\/script>/g,
+      )) {
+        if (m[1]?.trim()) hashes.add(`'sha256-${createHash("sha256").update(m[1]).digest("base64")}'`);
       }
     }
   }

@@ -3,16 +3,16 @@
 // 90-day bars. Incidents are part of the static page; they're passed in as
 // JSON to colour the components and days they affect.
 import {
+  type DayCount,
+  type HistoryFile,
+  type Level,
   STALE_MS,
+  type StatusFile,
   sumCounts,
   uptime,
   utcDay,
   worst,
-  type DayCount,
-  type HistoryFile,
-  type Level,
-  type StatusFile,
-} from "../../../shared/status";
+} from "@raptor-status/shared/status";
 import "./times";
 
 interface Summary {
@@ -33,7 +33,20 @@ interface Data {
 type Shown = Level | "maintenance";
 type DayLevel = "none" | "ok" | "minor" | "major" | "maint";
 
-const data: Data = JSON.parse(document.getElementById("status-data")!.textContent!);
+/** An element the page always has; missing means the build is broken, so say so. */
+function byId<T extends HTMLElement = HTMLElement>(id: string): T {
+  const el = document.getElementById(id);
+  if (!el) throw new Error(`status page: #${id} is missing`);
+  return el as T;
+}
+
+function inside<T extends Element = HTMLElement>(root: Element, selector: string): T {
+  const el = root.querySelector<T & Element>(selector);
+  if (!el) throw new Error(`status page: ${selector} is missing`);
+  return el;
+}
+
+const data: Data = JSON.parse(byId("status-data").textContent ?? "{}");
 const REFRESH_MS = 30_000;
 const DAY_MS = 86_400_000;
 
@@ -120,9 +133,9 @@ function lasted(ms: number): string {
 }
 
 function renderHero(levels: Shown[], now: number) {
-  const hero = document.getElementById("hero")!;
-  const title = document.getElementById("overall")!;
-  const checked = document.getElementById("checked")!;
+  const hero = byId("hero");
+  const title = byId("overall");
+  const checked = byId("checked");
   const real = levels.filter((l) => l !== "maintenance" && l !== "unknown") as Level[];
   const downCount = levels.filter((l) => l === "down").length;
   let level: Shown;
@@ -164,7 +177,7 @@ function renderHero(levels: Shown[], now: number) {
   }
 
   const panelDown = componentLevel("api", now) === "down" || componentLevel("app", now) === "down";
-  document.getElementById("unaffected")!.hidden = !panelDown;
+  byId("unaffected").hidden = !panelDown;
 }
 
 function dayLevel(id: string, day: string, c: DayCount | undefined): DayLevel {
@@ -200,15 +213,18 @@ function countsFor(id: string, day: string): DayCount | undefined {
 }
 
 function renderComponent(li: HTMLElement, now: number) {
-  const id = li.dataset.id!;
+  const id = li.dataset.id ?? "";
   const level = componentLevel(id, now);
   li.dataset.level = level;
   const state = status?.components[id];
-  li.querySelector(".state-text")!.textContent =
-    level === "down" && state?.status === "down" ? `Down for ${lasted(now - Date.parse(state.since))}` : stateText[level];
-  const latency = li.querySelector<HTMLElement>(".latency")!;
+  inside(li, ".state-text").textContent =
+    level === "down" && state?.status === "down"
+      ? `Down for ${lasted(now - Date.parse(state.since))}`
+      : stateText[level];
+  const latency = inside(li, ".latency");
   if (!isStale(now) && state) {
-    latency.textContent = state.status === "down" ? (state.detail ?? "") : state.latencyMs != null ? `${state.latencyMs} ms` : "";
+    latency.textContent =
+      state.status === "down" ? (state.detail ?? "") : state.latencyMs != null ? `${state.latencyMs} ms` : "";
   } else latency.textContent = "";
 
   const bars = li.querySelectorAll<HTMLElement>(".bars > span");
@@ -232,10 +248,12 @@ function renderComponent(li: HTMLElement, now: number) {
 
   const total = uptime(sumCounts(all));
   const name = data.components.find((c) => c.id === id)?.name ?? id;
-  li.querySelector(".uptime")!.textContent = total === null ? "No data yet" : `${percent(total)} uptime`;
-  li.querySelector(".bars")!.setAttribute(
+  inside(li, ".uptime").textContent = total === null ? "No data yet" : `${percent(total)} uptime`;
+  inside(li, ".bars").setAttribute(
     "aria-label",
-    total === null ? `${name}: no uptime data yet` : `${name}: ${percent(total)} uptime over the last ${data.days} days`,
+    total === null
+      ? `${name}: no uptime data yet`
+      : `${name}: ${percent(total)} uptime over the last ${data.days} days`,
   );
 }
 
@@ -248,7 +266,7 @@ function percent(u: number): string {
 function render() {
   const now = Date.now();
   const items = [...document.querySelectorAll<HTMLElement>(".component")];
-  items.forEach((li) => renderComponent(li, now));
+  for (const li of items) renderComponent(li, now);
   renderHero(
     items.map((li) => li.dataset.level as Shown),
     now,
@@ -266,21 +284,27 @@ function renderMaintenance(now: number) {
 }
 
 // The day tooltip.
-const tip = document.getElementById("tip")!;
-const dayFormat = new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" });
+const tip = byId("tip");
+const dayFormat = new Intl.DateTimeFormat(undefined, {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC",
+});
 
 function showTip(bar: HTMLElement) {
   const info = barInfo.get(bar);
   if (!info) return;
   const u = uptime(info.counts);
   const lines = [`<strong>${dayFormat.format(new Date(`${info.day}T00:00:00Z`))}</strong>`];
-  if (u === null) lines.push("<span>No checks this day</span>");
+  if (u === null || !info.counts) lines.push("<span>No checks this day</span>");
   else {
-    const { down, slow } = info.counts!;
+    const { down, slow } = info.counts;
     const extra = [down && `${lasted(down * 60_000)} down`, slow && `${lasted(slow * 60_000)} slow`].filter(Boolean);
     lines.push(`<span>${percent(u)} up${extra.length ? `, ${extra.join(", ")}` : ""}</span>`);
   }
-  for (const i of info.incidents) lines.push(`<span class="tip-incident" data-impact="${i.impact}">${escapeHTML(i.title)}</span>`);
+  for (const i of info.incidents)
+    lines.push(`<span class="tip-incident" data-impact="${i.impact}">${escapeHTML(i.title)}</span>`);
   tip.innerHTML = lines.join("");
   tip.hidden = false;
   const r = bar.getBoundingClientRect();
@@ -301,7 +325,13 @@ document.addEventListener("pointerover", (e) => {
 document.addEventListener("pointerout", (e) => {
   if ((e.target as Element).closest(".bars > span")) tip.hidden = true;
 });
-window.addEventListener("scroll", () => (tip.hidden = true), { passive: true });
+window.addEventListener(
+  "scroll",
+  () => {
+    tip.hidden = true;
+  },
+  { passive: true },
+);
 
 // Go.
 render();

@@ -10,6 +10,7 @@ on:
       - "checker/**"
       - "components.json"
       - "shared/**"
+      - "pnpm-lock.yaml"
       - ".github/workflows/deploy-checker.yml"
   workflow_dispatch:
 
@@ -28,15 +29,18 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
       - uses: actions/setup-node@v7
         with:
           node-version-file: checker/.nvmrc
-          cache: npm
-          cache-dependency-path: checker/package-lock.json
-      - run: npm ci
-        working-directory: checker
-      - run: npm run typecheck && npm test && npm run build && npm run package
-        working-directory: checker
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --filter raptor-status-checker...
+      - working-directory: checker
+        run: |
+          pnpm typecheck
+          pnpm test
+          pnpm build
+          pnpm package
       - uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}

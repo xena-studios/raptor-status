@@ -20,7 +20,9 @@ export class BlobStore implements Store {
   static async fromEnv(env = process.env): Promise<BlobStore> {
     const name = env.STATUS_CONTAINER || "status";
     if (env.STATUS_STORAGE_CONNECTION) {
-      return new BlobStore(BlobServiceClient.fromConnectionString(env.STATUS_STORAGE_CONNECTION).getContainerClient(name));
+      return new BlobStore(
+        BlobServiceClient.fromConnectionString(env.STATUS_STORAGE_CONNECTION).getContainerClient(name),
+      );
     }
     if (env.STATUS_STORAGE_URL) {
       const { DefaultAzureCredential } = await import("@azure/identity");

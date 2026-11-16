@@ -5,12 +5,19 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node scripts/swa-config.mjs",
-    "preview": "astro preview"
+    "build": "astro build && node scripts/swa-config.ts",
+    "preview": "astro preview",
+    "typecheck": "astro check"
   },
   "dependencies": {
     "@fontsource-variable/hanken-grotesk": "5.3.0",
     "@fontsource-variable/jetbrains-mono": "5.3.0",
     "astro": "7.4.12"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.12",
+    "@raptor-status/shared": "workspace:*",
+    "@types/node": "24.19.2",
+    "typescript": "6.0.3"
   }
 }

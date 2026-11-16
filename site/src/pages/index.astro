@@ -1,11 +1,11 @@
 ---
+import { DAYS } from "@raptor-status/shared/status";
 import config from "../../../components.json";
-import { DAYS } from "../../../shared/status";
 import Base from "../components/Base.astro";
 import IncidentCard from "../components/IncidentCard.astro";
 import Time from "../components/Time.astro";
-import { allIncidents, closedAt, impactLabel, isClosed, summary } from "../lib/incidents";
 import { duration } from "../lib/format";
+import { allIncidents, closedAt, impactLabel, isClosed, summary } from "../lib/incidents";
 
 const incidents = await allIncidents();
 const open = incidents.filter((i) => !isClosed(i));

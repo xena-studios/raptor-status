@@ -23,14 +23,16 @@ Add a Markdown file to [`incidents/`](incidents/) on `main`, from github.com if 
 
 ## Developing
 
-Node 24 for the page, Node 22 for the checker (what Azure runs).
+A pnpm workspace (`site`, `checker`, `shared`), in TypeScript throughout, linted and formatted with Biome, as Raptor is. Node 24 for the page, Node 22 for the checker (what Azure runs).
 
 ```sh
-cd checker && npm ci && npm run once -- ../site/public/data   # real checks from this machine
-cd site && npm ci && npm run dev                                # http://localhost:4321
+pnpm install
+pnpm --filter raptor-status-checker once ../site/public/data   # real checks from this machine
+pnpm --filter raptor-status-site dev                            # http://localhost:4321
+pnpm lint && pnpm typecheck && pnpm test                         # what CI runs
 ```
 
-`npm test` in `checker/` tests the status rules. `PREVIEW=outage npm run build` in `site/` builds the page with the made-up incidents in `site/preview/`. The page's colours and fonts are copies of Raptor's (`site/src/styles/site.css` there): keep them in step.
+`PREVIEW=outage pnpm build` in `site/` builds the page with the made-up incidents in `site/preview/`. The page's colours and fonts are copies of Raptor's (`site/src/styles/site.css` there): keep them in step.
 
 ## Licence
 
