@@ -1,0 +1,49 @@
+name: Deploy checker
+
+# Tests, builds, and deploys the Azure Function on pushes to main that touch
+# it. Signs in to Azure with GitHub's OIDC token: no Azure secret is stored
+# here (README.md, setup step 7).
+on:
+  push:
+    branches: [main]
+    paths:
+      - "checker/**"
+      - "components.json"
+      - "shared/**"
+      - ".github/workflows/deploy-checker.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-checker
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: checker/package-lock.json
+      - run: npm ci
+        working-directory: checker
+      - run: npm run typecheck && npm test && npm run build && npm run package
+        working-directory: checker
+      - uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - uses: Azure/functions-action@c5060b3b8bb1ebbcb531abd00c822ecbaa8ea656 # v1.5.7
+        with:
+          app-name: ${{ vars.AZURE_FUNCTIONAPP_NAME }}
+          package: checker/out/checker.zip
+          sku: flexconsumption

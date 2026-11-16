@@ -1,0 +1,10 @@
+---
+// A time in UTC that the page's script rewrites in the reader's own zone.
+import { utc } from "../lib/incidents";
+interface Props {
+  at: Date;
+  date?: boolean;
+}
+const { at, date = true } = Astro.props;
+---
+<time datetime={at.toISOString()} data-local={date ? "datetime" : "time"}>{utc(at, date)}</time>

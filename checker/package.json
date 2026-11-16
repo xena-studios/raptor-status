@@ -1,0 +1,28 @@
+{
+  "name": "raptor-status-checker",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Checks Raptor's services once a minute and writes status.json and history.json for the status page.",
+  "type": "module",
+  "main": "dist/index.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "once": "npm run build && node dist/local.js",
+    "package": "node scripts/package.mjs"
+  },
+  "dependencies": {
+    "@azure/functions": "4.17.1",
+    "@azure/identity": "4.14.1",
+    "@azure/storage-blob": "12.34.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "esbuild": "0.28.2",
+    "typescript": "7.0.2"
+  }
+}

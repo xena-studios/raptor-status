@@ -1,0 +1,58 @@
+---
+import { render } from "astro:content";
+import config from "../../../../components.json";
+import Base from "../../components/Base.astro";
+import Time from "../../components/Time.astro";
+import { allIncidents, closedAt, impactLabel, isClosed, updateLabel, type Incident } from "../../lib/incidents";
+import { duration } from "../../lib/format";
+
+export async function getStaticPaths() {
+  return (await allIncidents()).map((incident) => ({ params: { slug: incident.id }, props: { incident } }));
+}
+
+const { incident: i } = Astro.props as { incident: Incident };
+const { Content } = await render(i);
+const names = i.data.affects.map((id) => config.components.find((c) => c.id === id)?.name ?? id);
+const end = closedAt(i);
+const hasWriteup = Boolean(i.body?.trim());
+---
+<Base title={`${i.data.title} · Raptor status`} description={i.data.updates[0].text}>
+  <a class="back" href="/">← Raptor status</a>
+  <header class="incident-head" data-impact={i.data.impact}>
+    <p class="card-kicker">
+      <span class="impact">{impactLabel[i.data.impact]}</span>
+      <span class="card-status">{isClosed(i) ? updateLabel[i.data.updates[0].status] : "Ongoing"}</span>
+    </p>
+    <h1>{i.data.title}</h1>
+    <p class="card-meta">
+      <span>Affects {names.join(", ")}</span>
+      <span>Started <Time at={i.data.started} /></span>
+      {end && <span>Lasted {duration(end.getTime() - i.data.started.getTime())}</span>}
+    </p>
+  </header>
+  <ol class="timeline">
+    {
+      i.data.updates.map((u) => (
+        <li>
+          <p class="when">
+            <Time at={u.at} />
+          </p>
+          <div class="what">
+            <strong>{updateLabel[u.status]}</strong>
+            <p>{u.text}</p>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+  {
+    hasWriteup && (
+      <section class="writeup" aria-label="What happened">
+        <Content />
+      </section>
+    )
+  }
+  <script>
+    import "../../scripts/times";
+  </script>
+</Base>

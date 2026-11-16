@@ -1,0 +1,41 @@
+{
+  "$comment": "What the status page shows and the checker probes, in the order shown. The id is what incidents name in `affects`, and what history is kept under: never rename one. `slowMs` marks a check as degraded when it answers but takes longer.",
+  "components": [
+    {
+      "id": "api",
+      "name": "Panel and API",
+      "description": "Signing in, managing servers, and the connection your nodes keep to Raptor",
+      "probe": { "kind": "http", "url": "https://api.raptorpanel.net/healthz", "expect": 200, "slowMs": 1500 }
+    },
+    {
+      "id": "app",
+      "name": "Web app",
+      "description": "app.raptorpanel.net",
+      "probe": { "kind": "http", "url": "https://app.raptorpanel.net/", "expect": 200, "contains": "<div id=\"root\"", "slowMs": 2000 }
+    },
+    {
+      "id": "dns",
+      "name": "Node addresses",
+      "description": "The n-….raptornodes.net names players and SFTP connect to",
+      "probe": { "kind": "dns-soa", "zone": "raptornodes.net", "slowMs": 1000 }
+    },
+    {
+      "id": "installer",
+      "name": "Installer",
+      "description": "get.raptorpanel.net, for linking new nodes",
+      "probe": { "kind": "http", "url": "https://get.raptorpanel.net/", "expect": 200, "contains": "#!/bin/bash", "slowMs": 3000 }
+    },
+    {
+      "id": "docs",
+      "name": "Docs",
+      "description": "docs.raptorpanel.net",
+      "probe": { "kind": "http", "url": "https://docs.raptorpanel.net/", "expect": 200, "slowMs": 2000 }
+    },
+    {
+      "id": "website",
+      "name": "Website",
+      "description": "raptorpanel.net",
+      "probe": { "kind": "http", "url": "https://raptorpanel.net/", "expect": 200, "slowMs": 2000 }
+    }
+  ]
+}

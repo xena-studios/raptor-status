@@ -1,0 +1,41 @@
+---
+// An open incident or planned maintenance: its latest update, in full.
+import config from "../../../components.json";
+import { impactLabel, latest, updateLabel, type Incident } from "../lib/incidents";
+import Time from "./Time.astro";
+
+interface Props {
+  incident: Incident;
+}
+const { incident: i } = Astro.props;
+const update = latest(i);
+const sameDay = i.data.ends?.toISOString().slice(0, 10) === i.data.started.toISOString().slice(0, 10);
+const names = i.data.affects.map((id) => config.components.find((c) => c.id === id)?.name ?? id);
+---
+<article class="card" data-impact={i.data.impact} data-slug={i.id}>
+  <header>
+    <p class="card-kicker">
+      <span class="impact">{impactLabel[i.data.impact]}</span>
+      <span class="card-status" data-maint-status>{updateLabel[update.status]}</span>
+    </p>
+    <h3><a href={`/incidents/${i.id}/`}>{i.data.title}</a></h3>
+  </header>
+  {
+    i.data.impact === "maintenance" && (
+      <p class="window">
+        <Time at={i.data.started} />
+        {i.data.ends && (
+          <>
+            {" to "}
+            <Time at={i.data.ends} date={!sameDay} />
+          </>
+        )}
+      </p>
+    )
+  }
+  <p class="card-text">{update.text}</p>
+  <p class="card-meta">
+    <span>Affects {names.join(", ")}</span>
+    <span>Updated <Time at={update.at} /></span>
+  </p>
+</article>

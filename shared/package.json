@@ -1,0 +1,5 @@
+{
+  "$comment": "Marks shared/ as ES modules for the checker; the site and checker each have their own package.json.",
+  "private": true,
+  "type": "module"
+}

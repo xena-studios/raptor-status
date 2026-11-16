@@ -1,0 +1,153 @@
+---
+import config from "../../../components.json";
+import { DAYS } from "../../../shared/status";
+import Base from "../components/Base.astro";
+import IncidentCard from "../components/IncidentCard.astro";
+import Time from "../components/Time.astro";
+import { allIncidents, closedAt, impactLabel, isClosed, summary } from "../lib/incidents";
+import { duration } from "../lib/format";
+
+const incidents = await allIncidents();
+const open = incidents.filter((i) => !isClosed(i));
+const active = open.filter((i) => i.data.impact !== "maintenance");
+// Soonest first.
+const maintenance = open.filter((i) => i.data.impact === "maintenance").reverse();
+
+const built = Date.now();
+const recentDays = 30;
+const recent = incidents.filter((i) => isClosed(i) && built - i.data.started.getTime() < recentDays * 86_400_000);
+
+// What the script needs: where the live files are, the components, and
+// every incident that can colour a day or a component.
+const data = {
+  base: import.meta.env.PUBLIC_STATUS_BASE ?? "/data",
+  days: DAYS,
+  components: config.components.map(({ id, name }) => ({ id, name })),
+  incidents: incidents
+    .filter((i) => !isClosed(i) || built - i.data.started.getTime() < (DAYS + 1) * 86_400_000)
+    .map(summary),
+};
+const json = JSON.stringify(data).replace(/</g, "\\u003c");
+const bars = Array.from({ length: DAYS });
+---
+<Base title="Raptor status">
+  <section class="hero" id="hero" data-level="unknown">
+    <span class="beacon" aria-hidden="true"></span>
+    <div>
+      <h1 id="overall" aria-live="polite">Checking Raptor…</h1>
+      <p class="checked" id="checked">Live status needs JavaScript. Incidents below are always current.</p>
+    </div>
+  </section>
+
+  <p class="unaffected" id="unaffected" hidden>
+    <strong>Your game servers aren't affected.</strong> They run on your own machines and keep running, with
+    their schedules and backups, while the Panel is down. You can't manage them from Raptor until it's back.
+  </p>
+
+  {
+    active.length > 0 && (
+      <section class="section" aria-labelledby="active-h">
+        <h2 class="label" id="active-h">Ongoing</h2>
+        <div class="cards">
+          {active.map((i) => (
+            <IncidentCard incident={i} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  {
+    maintenance.length > 0 && (
+      <section class="section" aria-labelledby="maint-h">
+        <h2 class="label" id="maint-h">Maintenance</h2>
+        <div class="cards">
+          {maintenance.map((i) => (
+            <IncidentCard incident={i} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section" aria-labelledby="components-h">
+    <div class="section-head">
+      <h2 class="label" id="components-h">Components</h2>
+      <p class="legend" aria-hidden="true">
+        <span><i class="swatch ok"></i>Up</span>
+        <span><i class="swatch minor"></i>Partly down</span>
+        <span><i class="swatch major"></i>Down</span>
+      </p>
+    </div>
+    <ul class="components">
+      {
+        config.components.map((c) => (
+          <li class="component" data-id={c.id} data-level="unknown">
+            <div class="component-head">
+              <div>
+                <h3>{c.name}</h3>
+                <p class="desc">{c.description}</p>
+              </div>
+              <p class="state">
+                <span class="state-text">Checking</span>
+                <span class="latency" />
+              </p>
+            </div>
+            <div class="bars" role="img" aria-label={`${c.name}: uptime for the last ${DAYS} days is loading`}>
+              {bars.map(() => (
+                <span />
+              ))}
+            </div>
+            <div class="bars-foot" aria-hidden="true">
+              <span class="span-long">{DAYS} days ago</span>
+              <span class="span-short">30 days ago</span>
+              <span class="uptime" />
+              <span>Today</span>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="section" aria-labelledby="past-h">
+    <div class="section-head">
+      <h2 class="label" id="past-h">Past incidents</h2>
+      <a class="more" href="/history/">All incidents</a>
+    </div>
+    {
+      recent.length === 0 ? (
+        <p class="empty">No incidents in the last {recentDays} days.</p>
+      ) : (
+        <ul class="past">
+          {recent.map((i) => {
+            const end = closedAt(i)!;
+            return (
+              <li data-impact={i.data.impact}>
+                <a href={`/incidents/${i.id}/`}>{i.data.title}</a>
+                <p>
+                  <span class="impact">{impactLabel[i.data.impact]}</span>
+                  <Time at={i.data.started} />
+                  <span>
+                    {i.data.impact === "maintenance" ? "Done in" : "Resolved in"} {duration(end.getTime() - i.data.started.getTime())}
+                  </span>
+                </p>
+              </li>
+            );
+          })}
+        </ul>
+      )
+    }
+  </section>
+
+  <p class="note">
+    Raptor's game servers run on your own machines. They keep running, with their schedules and backups, while
+    anything on this page is down.
+  </p>
+
+  <div class="tip" id="tip" role="tooltip" hidden></div>
+  <script type="application/json" id="status-data" set:html={json} />
+  <script>
+    import "../scripts/status";
+  </script>
+</Base>

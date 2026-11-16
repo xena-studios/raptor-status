@@ -1,0 +1,56 @@
+name: Deploy site
+
+# Every push to main that touches the page or an incident, and once a day so
+# "the last 30 days" moves on without one. A build that fails (a bad incident
+# file, say) deploys nothing, and the live page stays as it was.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "incidents/**"
+      - "components.json"
+      - "shared/**"
+      - ".github/workflows/deploy-site.yml"
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One at a time, newest last, so an older build can't land after a newer one.
+concurrency:
+  group: deploy-site
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci
+        working-directory: site
+      - name: Build
+        working-directory: site
+        env:
+          PUBLIC_STATUS_BASE: ${{ vars.STATUS_BASE_URL }}
+        run: |
+          if [[ -z $PUBLIC_STATUS_BASE ]]; then
+            echo "::error::Set the STATUS_BASE_URL repository variable (README.md, setup step 6)"; exit 1
+          fi
+          npm run build
+      - uses: Azure/static-web-apps-deploy@1a947af9992250f3bc2e68ad0754c0b0c11566c9 # v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          action: upload
+          app_location: site/dist
+          skip_app_build: true
+          skip_api_build: true

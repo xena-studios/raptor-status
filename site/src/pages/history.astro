@@ -1,0 +1,43 @@
+---
+import Base from "../components/Base.astro";
+import Time from "../components/Time.astro";
+import { allIncidents, closedAt, impactLabel } from "../lib/incidents";
+import { duration } from "../lib/format";
+
+const incidents = await allIncidents();
+const months = new Map<string, typeof incidents>();
+for (const i of incidents) {
+  const key = i.data.started.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+  months.set(key, [...(months.get(key) ?? []), i]);
+}
+---
+<Base title="Incident history · Raptor status">
+  <a class="back" href="/">← Raptor status</a>
+  <h1 class="page-title">Incident history</h1>
+  {incidents.length === 0 && <p class="empty section">Nothing yet.</p>}
+  {
+    [...months].map(([month, list]) => (
+      <section class="section month">
+        <h2 class="label">{month}</h2>
+        <ul class="past">
+          {list.map((i) => {
+            const end = closedAt(i);
+            return (
+              <li data-impact={i.data.impact}>
+                <a href={`/incidents/${i.id}/`}>{i.data.title}</a>
+                <p>
+                  <span class="impact">{impactLabel[i.data.impact]}</span>
+                  <Time at={i.data.started} />
+                  <span>{end ? `Lasted ${duration(end.getTime() - i.data.started.getTime())}` : "Ongoing"}</span>
+                </p>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    ))
+  }
+  <script>
+    import "../scripts/times";
+  </script>
+</Base>

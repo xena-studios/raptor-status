@@ -1,0 +1,67 @@
+---
+import Logo from "./Logo.astro";
+import XenaLogo from "./XenaLogo.astro";
+import "../styles/status.css";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description = "Live status of Raptor's Panel, web app, and services, and the history of incidents." } = Astro.props;
+const app = "https://app.raptorpanel.net";
+const docs = "https://docs.raptorpanel.net";
+const discord = "https://discord.gg/HyUa3sRpeN";
+const website = "https://raptorpanel.net";
+const source = "https://github.com/xena-studios/raptor-status";
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#0c0a0a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f9f6f5" media="(prefers-color-scheme: light)" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <link rel="alternate" type="application/atom+xml" title="Raptor status" href="/feed.xml" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="wrap top">
+      <a class="brand" href="/" aria-label="Raptor status, home">
+        <Logo />
+        <span class="tag">Status</span>
+      </a>
+      <nav aria-label="Raptor">
+        <a class="wide" href={docs}>Docs</a>
+        <a class="wide" href={discord}>Discord</a>
+        <a class="button" href={app}>Open Raptor</a>
+      </nav>
+    </header>
+    <main id="main" class="wrap">
+      <slot />
+    </main>
+    <footer>
+      <div class="wrap">
+        <p class="studio">
+          <a href="https://xenastudios.co" aria-label="Xena Studios"><XenaLogo /></a>
+          <span>© {new Date().getFullYear()} Xena Studios</span>
+        </p>
+        <span>Checked every minute from Microsoft Azure, apart from everything Raptor runs on.</span>
+        <nav aria-label="Footer">
+          <a href={website}>Raptor</a>
+          <a href={docs}>Docs</a>
+          <a href={discord}>Discord</a>
+          <a href="/history/">Incident history</a>
+          <a href="/feed.xml">Atom feed</a>
+          <a href={source}>Source</a>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>
