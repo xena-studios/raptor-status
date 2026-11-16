@@ -47,6 +47,8 @@ The page's colours and fonts are copies of Raptor's ([its DESIGN.md](https://git
 
 ## Setup
 
+**Done on 2026-11-16**, in the subscription **Raptor**, resource group `raptor-status` (Central US): storage `raptorstatus` (public `status` container) and `raptorstatusfn`, Function App `raptor-status-checker`, Static Web App `raptor-status` (`brave-rock-00fb9f210.6.azurestaticapps.net`), Entra app `raptor-status-deploy`, and the budget `raptor-monthly` ($5 a month: alerts at 50% and 100%, and when the month is forecast past it). The steps are kept for rebuilding it.
+
 Once, with the [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) (`brew install azure-cli`) and `gh`. The names below are suggestions; storage account names must be unique across Azure, so pick your own where they're marked.
 
 ### 1. An Azure account and a budget
@@ -146,12 +148,15 @@ An Entra app that GitHub signs in as with its OIDC token, allowed to deploy this
 ```sh
 APP=$(az ad app create --display-name raptor-status-deploy --query appId -o tsv)
 az ad sp create --id $APP
-az ad app federated-credential create --id $APP --parameters '{
-  "name": "github-main",
-  "issuer": "https://token.actions.githubusercontent.com",
-  "subject": "repo:xena-studios/raptor-status:ref:refs/heads/main",
-  "audiences": ["api://AzureADTokenExchange"]
-}'
+# GitHub names this organisation's repositories by owner and repository ID in
+# the token's subject, so a deleted and re-created repository can't inherit it.
+SUBJECT=$(gh api repos/xena-studios/raptor-status --jq '"repo:\(.owner.login)@\(.owner.id)/\(.name)@\(.id):ref:refs/heads/main"')
+az ad app federated-credential create --id $APP --parameters "{
+  \"name\": \"github-main-ids\",
+  \"issuer\": \"https://token.actions.githubusercontent.com\",
+  \"subject\": \"$SUBJECT\",
+  \"audiences\": [\"api://AzureADTokenExchange\"]
+}"
 az role assignment create --assignee $APP --role "Website Contributor" \
   --scope "$(az functionapp show -g raptor-status -n $FN --query id -o tsv)"
 
@@ -161,7 +166,7 @@ gh variable set AZURE_SUBSCRIPTION_ID --body "$(az account show --query id -o ts
 gh variable set AZURE_FUNCTIONAPP_NAME --body $FN
 ```
 
-If the deploy fails with an authorization error, give the app **Contributor** on the Function App instead of Website Contributor (still only that one resource).
+If `azure/login` fails with `AADSTS700213: No matching federated identity record`, the error shows the subject GitHub sent: make the credential's subject exactly that. Website Contributor on the Function App is enough to deploy it (tested).
 
 ### 8. First deploy and check
 
