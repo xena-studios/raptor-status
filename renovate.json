@@ -1,17 +1,36 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["local>xena-studios/.github:renovate-config"],
+  "extends": [
+    "local>xena-studios/.github:renovate-config"
+  ],
   "packageRules": [
     {
+      "description": "pnpm refuses packages under a day old (its minimumReleaseAge), so Renovate waits as long: otherwise its PRs fail to install.",
+      "matchDatasources": [
+        "npm"
+      ],
+      "minimumReleaseAge": "1 day"
+    },
+    {
       "description": "Third-party actions hold the deploy credentials, so they're pinned to a commit; Renovate keeps the pins current. GitHub's own actions stay on tags.",
-      "matchManagers": ["github-actions"],
-      "matchPackageNames": ["!actions/**", "!github/**"],
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchPackageNames": [
+        "!actions/**",
+        "!github/**"
+      ],
       "pinDigests": true
     },
     {
       "description": "Azure Functions runs the checker on Node 22 (Flex Consumption's newest): keep it, and its types, there until Azure offers a newer one.",
-      "matchFileNames": ["checker/**"],
-      "matchDepNames": ["node", "@types/node"],
+      "matchFileNames": [
+        "checker/**"
+      ],
+      "matchDepNames": [
+        "node",
+        "@types/node"
+      ],
       "allowedVersions": "<23"
     }
   ]
