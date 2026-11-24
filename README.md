@@ -1,6 +1,8 @@
 # Raptor status
 
-**[status.raptorpanel.net](https://status.raptorpanel.net)**: whether Raptor's Panel, web app, and services are up, and what's been wrong lately.
+**Whether Raptor is up, and what's been wrong lately.**
+
+**[status.raptorpanel.net](https://status.raptorpanel.net)** is the status page for [Raptor](https://raptorpanel.net), by [Xena Studios](https://xenastudios.co): its Panel, its web app and every service it runs.
 
 It's checked every minute from Microsoft Azure, apart from everything Raptor itself runs on (Oracle Cloud, AWS, Cloudflare), so it stays up when they don't. Game servers run on their owners' machines and keep running whatever this page says.
 
@@ -21,7 +23,7 @@ Add a Markdown file to [`incidents/`](incidents/) on `main`, from github.com if 
 - [How it works](docs/HOW-IT-WORKS.md): what's checked, how it decides, who hears about it, and what it costs
 - [Setting it up](docs/SETUP.md): what runs in Azure, and how to build it again
 
-## Developing
+## Building
 
 A pnpm workspace (`site`, `checker`, `shared`), in TypeScript throughout, linted and formatted with Biome, as Raptor is. Node 24 for the page, Node 22 for the checker (what Azure runs).
 
@@ -33,6 +35,10 @@ pnpm lint && pnpm typecheck && pnpm test                         # what CI runs
 ```
 
 `PREVIEW=outage pnpm build` in `site/` builds the page with the made-up incidents in `site/preview/`. The page's colours and fonts are copies of Raptor's (`site/src/styles/site.css` there): keep them in step.
+
+## Contributing
+
+Problems with the page go in an [issue](https://github.com/xena-studios/raptor-status/issues/new/choose); a problem with Raptor itself goes to [Raptor's issues](https://github.com/xena-studios/raptor/issues/new/choose) or its [Discord](https://discord.gg/HyUa3sRpeN). The org's [contributing guide](https://github.com/xena-studios/.github/blob/main/CONTRIBUTING.md) and [security policy](https://github.com/xena-studios/.github/blob/main/SECURITY.md) apply.
 
 ## Licence
 
